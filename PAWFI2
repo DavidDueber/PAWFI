@@ -1,3 +1,4 @@
+## PAWFI works on lavaan fitted objects and uses parallel computing to speed it up
 require(lavaan)
 require(parallel)
 
