@@ -9,8 +9,8 @@ require(parallel)
 ## Current Version: 1.0, 10/27/2018                   ##
 ##                                                    ##
 ## Removes cases from the data set until the          ##
-## chi-squared test of model fit is  non-significant. ##
-## The proportion of people remaning is the PAWFI,    ##
+## chi-squared test of model fit is non-significant.  ##
+## The proportion of people remaining is the PAWFI,   ##
 ## Input is a fitted lavaan model, and the output is  ##
 ## the PAWFI and the list of people removed (row      ##
 ## numbers of data set).                              ##
