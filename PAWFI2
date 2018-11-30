@@ -1,64 +1,113 @@
 require(lavaan)
+
 require(parallel)
 
 PAWFI <- function(Fitted, scaled = TRUE, ncores = 1) {
+
   if (scaled & !is.na(lavInspect(Fitted, "fit")["chisq.scaled"])) {
+  
     TestStat <- "chisq.scaled"
+    
     pval <- "pvalue.scaled"
+    
   } else {
+  
     TestStat <- "chisq"
+    
     pval <- "pvalue"
+    
   }
   
+  
   if (lavInspect(Fitted, "fit")[pval] > .05) {
+  
     return(list(PAWFI = 0))
+    
   }
+  
 
 
   Data <- as.matrix(lavInspect(Fitted, "data"))
+  
   colnames(Data) <- lavNames(Fitted)
+  
 
   Data <- cbind(Data, c(1:nrow(Data)))
+  
 
   RemoveList <- vector()
+  
 
   Results <- update(Fitted, data = Data, ordered = lavNames(Fitted, type = "ov.ord"))
+  
   Current_ChiSq <- lavInspect(Results, "fit")[TestStat]
   
+  
   cl <- makeCluster(ncores, type = "PSOCK")
+  
   clusterEvalQ(cl, library(lavaan))
+  
 
   while (lavInspect(Results, "fit")[pval] < .05) {
+  
     
     FitList <- parSapplyLB (cl, 1:nrow(Data), JackknifeFit, 
+    
                                      J_Fitted = Fitted, 
+                                     
                                      J_Data = Data, 
+                                     
                                      TestStat = TestStat, 
+                                     
                                      OrderedList = lavNames(Fitted, type = "ov.ord"))
+                                     
     PersonToRemove <- FitList[1,order(FitList[2,])][1]
+    
 
     RemoveList <- c(RemoveList, PersonToRemove[1])
+    
     Data <- Data[Data[,ncol(Data)] != PersonToRemove[1],]
+    
     Results <- update(Fitted, data = Data, ordered = lavNames(Fitted, type = "ov.ord"))
+    
  
     if((lavInspect(Results, "fit")[TestStat]-Current_ChiSq)/Current_ChiSq > (1 - 2/nrow(Data))) {
+    
       break
+      
     }
+    
     Current_ChiSq <- lavInspect(Results, "fit")[TestStat]  
+    
   }  
+  
 
   if (lavInspect(Results, "fit")[pval] > .05) {
+  
     PAWFI <- length(RemoveList)/(nrow(Data)+length(RemoveList))
+    
     stopCluster(cl)
+    
     return(list(PAWFI = PAWFI, RemoveList = RemoveList))
+    
   } else {
+  
     stopCluster(cl)
+    
     return("Something went horribly wrong!")
+    
   }
+  
 }
 
+
 JackknifeFit <- function(i, J_Fitted, J_Data, TestStat, OrderedList) {
+
   J_Data_Current <- J_Data[-c(i),]
+  
   CurrentResults <- update(J_Fitted, data = J_Data_Current, ordered = OrderedList)
+  
   c(J_Data[i, ncol(J_Data)], lavInspect(CurrentResults, "fit")[TestStat])
+  
 }
+
