@@ -1,3 +1,4 @@
+{
 require(lavaan)
 require(parallel)
 
@@ -128,3 +129,4 @@ JackknifeFit <- function(i, J_Fitted, J_Data, TestStat, OrderedList) {
 ##########################
 ## End of Jackknife Fit ##
 ##########################
+}
