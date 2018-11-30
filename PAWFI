@@ -61,14 +61,9 @@ PAWFI <- function(Fitted, scaled = TRUE, ncores = 1) {
   Results <- update(Fitted, data = Data, ordered = lavNames(Fitted, type = "ov.ord"))
   Current_ChiSq <- lavInspect(Results, "fit")[TestStat]
   
-  ## Make clusters and load lavaan on to them. If ncores = 1, do not make new cluster
-  ## This avoids triggering a security popup on Windows. 
-  if( ncores > 1) {
-    cl <- makeCluster(ncores, type = "PSOCK")
-    clusterEvalQ(cl, library(lavaan))
-  } else { 
-    cl = NULL 
-  }
+  ## Set up the cluster
+  cl <- makeCluster(ncores, type = "PSOCK")
+  clusterEvalQ(cl, library(lavaan))
 
   ## Remove people one at a time with JackknifeFit until chisq is non-significant
   ## We are also checking to make sure that chi square is changing fast enough to be worth it
